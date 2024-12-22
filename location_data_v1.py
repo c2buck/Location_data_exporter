@@ -54,12 +54,18 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
         # Apply horizontal accuracy filter
         if horizontal_accuracy_filter == "< 10m":
             df = df[df["ZHORIZONTALACCURACY"] < 10]
+            horizontal_accuracy_filter_str = "less than 10m"
         elif horizontal_accuracy_filter == "< 50m":
             df = df[df["ZHORIZONTALACCURACY"] < 50]
+            horizontal_accuracy_filter_str = "less than 50m"
         elif horizontal_accuracy_filter == "< 100m":
             df = df[df["ZHORIZONTALACCURACY"] < 100]
+            horizontal_accuracy_filter_str = "less than 100m"
         elif horizontal_accuracy_filter == "< 500m":
             df = df[df["ZHORIZONTALACCURACY"] < 500]
+            horizontal_accuracy_filter_str = "less than 500m"
+        else:
+            horizontal_accuracy_filter_str = "nil"
 
         # Create a KML object
         log_message("Creating KML object...")
@@ -146,7 +152,9 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
 
         # Set the KML output file name
         input_filename = os.path.basename(excel_path)
-        output_filename = f"Exported - {os.path.splitext(input_filename)[0]}.kml"
+        start_date_str = start_datetime.strftime('%Y%m%d%H%M')
+        end_date_str = end_datetime.strftime('%Y%m%d%H%M')
+        output_filename = f"Exported - {os.path.splitext(input_filename)[0]} - {horizontal_accuracy_filter_str} - {start_date_str}_to_{end_date_str}.kml"
         output_kml = os.path.join(output_folder, output_filename)
         log_message(f"Saving KML file to: {output_kml}")
         kml.save(output_kml)
