@@ -22,7 +22,7 @@ def log_message(message):
     log_window.insert(tk.END, message + "\n")
     log_window.see(tk.END)
 
-def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing):
+def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing, speed_unit):
     try:
         # Define the column names
         column_names = [
@@ -85,15 +85,18 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
             alt = round(row.get("ZALTITUDE", 0), 1)  # Use altitude from the column and round to 1 decimal place
             vertical_accuracy = round(row.get("ZVERTICALACCURACY", 0), 1)  # Round to 1 decimal place
             horizontal_accuracy = round(row.get("ZHORIZONTALACCURACY", 0), 1)  # Round to 1 decimal place
-            speed_mps = row.get("ZSPEED", 0)  # Speed in meters per second
+            speed_mps = round(row.get("ZSPEED", 0), 1)  # Speed in meters per second, rounded to 1 decimal place
             speed_kmh = round(speed_mps * 3.6, 1)  # Convert speed from m/s to km/h and round to 1 decimal place
-            course = row.get("ZCOURSE", "No data recorded")
+            course = round(row.get("ZCOURSE", 0), 1)  # Round course to 1 decimal place
             if course == -1:
                 course = "No data recorded"
             if speed_mps == -1:
                 speed_text = "No data recorded"
             else:
-                speed_text = f"{speed_kmh} km/h ({speed_mps} m/s)"
+                if speed_unit == "km/h":
+                    speed_text = f"{speed_kmh} km/h"
+                else:
+                    speed_text = f"{speed_mps} m/s"
 
             # Create a new point with the red dot style
             log_message(f"Creating point: coords: ({lon}, {lat}, {alt})")
@@ -184,6 +187,7 @@ def run():
     show_time = time_var.get()
     show_speed = speed_var.get()
     show_bearing = bearing_var.get()
+    speed_unit = speed_unit_var.get()
 
     # Reset background colors
     excel_path_entry.config(bg="white")
@@ -212,7 +216,7 @@ def run():
 
     start_datetime = datetime.combine(start_date, datetime.strptime(start_time, "%H:%M").time())
     end_datetime = datetime.combine(end_date, datetime.strptime(end_time, "%H:%M").time())
-    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing)).start()
+    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing, speed_unit)).start()
 
 def validate_time_format(time_str):
     try:
@@ -250,6 +254,11 @@ tk.Checkbutton(root, text="Date", variable=date_var).grid(row=4, column=0, padx=
 tk.Checkbutton(root, text="Time", variable=time_var).grid(row=4, column=1, padx=10, pady=5, sticky="w")
 tk.Checkbutton(root, text="Speed", variable=speed_var).grid(row=4, column=2, padx=10, pady=5, sticky="w")
 tk.Checkbutton(root, text="Bearing", variable=bearing_var).grid(row=4, column=3, padx=10, pady=5, sticky="w")
+
+# Add radio buttons for speed unit selection
+speed_unit_var = tk.StringVar(value="km/h")
+tk.Radiobutton(root, text="km/h", variable=speed_unit_var, value="km/h").grid(row=4, column=4, padx=10, pady=5, sticky="w")
+tk.Radiobutton(root, text="m/s", variable=speed_unit_var, value="m/s").grid(row=4, column=5, padx=10, pady=5, sticky="w")
 
 tk.Label(root, text="Start Date:").grid(row=5, column=2, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
