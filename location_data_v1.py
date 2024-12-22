@@ -3,12 +3,20 @@ import pandas as pd
 import simplekml
 from datetime import datetime, timedelta
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, Toplevel, Label
 from tkinter.ttk import Progressbar, Combobox
 from tkcalendar import DateEntry
 import os
 import threading
 from PIL import Image, ImageTk
+
+def update_speed_unit_state():
+    if speed_var.get():
+        kmh_radiobutton.config(state=tk.NORMAL)
+        ms_radiobutton.config(state=tk.NORMAL)
+    else:
+        kmh_radiobutton.config(state=tk.DISABLED)
+        ms_radiobutton.config(state=tk.DISABLED)
 
 def convert_timestamp(ts):
     try:
@@ -175,11 +183,40 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
             f.write(f"Speed Unit: {speed_unit}\n")
         log_message(f"Filters and settings saved to: {filters_path}")
 
-        messagebox.showinfo("Success", f"KML file created: {output_kml}\nTotal data points created: {point_count}\nFilters and settings saved to: {filters_path}")
+        # Display warning if more than 1000 data points
+        if point_count > 1000:
+            warning_message = (
+                "WARNING - This file may crash Google Earth due to the large data volume."
+                "Consider re-applying filters if there are issues."
+            )
+            log_message(f"WARNING: {warning_message}")
+            messagebox.showwarning("Warning", warning_message)
+
+        # Show success message with image
+        show_success_message(output_kml, point_count, filters_path)
 
     except Exception as e:
         log_message(f"An error occurred: {e}")
         messagebox.showerror("Error", f"An error occurred: {e}")
+
+def show_success_message(output_kml, point_count, filters_path):
+    success_window = Toplevel(root)
+    success_window.title("Success")
+
+    # Load the image
+    image_path = "C:/Users/micro/OneDrive/Pictures/nice.jpg"
+    image = Image.open(image_path)
+    image = image.resize((200, 200), Image.LANCZOS)  # Resize the image to fit in the window
+    photo = ImageTk.PhotoImage(image)
+
+    # Create and place the widgets
+    Label(success_window, image=photo).pack(pady=10)
+    Label(success_window, text=f"KML file created: {output_kml}").pack(pady=5)
+    Label(success_window, text=f"Total data points created: {point_count}").pack(pady=5)
+    Label(success_window, text=f"Filters and settings saved to: {filters_path}").pack(pady=5)
+
+    # Keep a reference to the image to prevent garbage collection
+    success_window.image = photo
 
 def browse_file():
     file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
@@ -199,6 +236,9 @@ def update_date_label(entry, label):
     label.config(text=formatted_date)
 
 def run():
+    if not validate_speed_selection():
+        return
+
     excel_path = excel_path_entry.get()
     output_folder = output_folder_entry.get()
     start_date = start_date_entry.get_date()
@@ -250,9 +290,31 @@ def validate_time_format(time_str):
     except ValueError:
         return False
 
+def show_warning():
+    warning_message = (
+        "WARNING\n"
+        "Validate results independently before disclosing products in criminal proceedings\n"
+        "Not to be disclosed outside of the QPS without prior written permission\n"
+        "Application created by:\n"
+        "XXX\n"
+        "Please send email re bugs or feedback to:\n"
+        "XXXX"
+    )
+    if not messagebox.askokcancel("Disclaimer", warning_message):
+        root.destroy()
+
+def validate_speed_selection():
+    if not speed_var.get() and (speed_unit_var.get() == "km/h" or speed_unit_var.get() == "m/s"):
+        messagebox.showerror("Input Error", "Please select the Speed checkbox to enable speed unit selection.")
+        return False
+    return True
+
 # Create the main window
 root = tk.Tk()
 root.title("IPhone Location Data Map Exporter")
+
+# Show warning message
+root.after(0, show_warning)
 
 # Load the image
 image_path = "C:/Users/micro/OneDrive/Pictures/Logo_of_Queensland_Police_Service.svg.png"
@@ -287,17 +349,19 @@ bearing_var = tk.BooleanVar()
 tk.Checkbutton(root, text="Date", variable=date_var).grid(row=4, column=0, padx=10, pady=5, sticky="w")
 tk.Checkbutton(root, text="Time", variable=time_var).grid(row=4, column=1, padx=10, pady=5, sticky="w")
 
-tk.Checkbutton(root, text="Speed", variable=speed_var).grid(row=5, column=0, padx=10, pady=5, sticky="w")
+tk.Checkbutton(root, text="Speed", variable=speed_var, command=update_speed_unit_state).grid(row=5, column=0, padx=10, pady=5, sticky="w")
 tk.Checkbutton(root, text="Bearing", variable=bearing_var).grid(row=5, column=1, padx=10, pady=5, sticky="w")
 
 # Add radio buttons for speed unit selection
 speed_unit_var = tk.StringVar(value="km/h")
-tk.Radiobutton(root, text="km/h", variable=speed_unit_var, value="km/h").grid(row=6, column=0, padx=10, pady=5, sticky="w")
-tk.Radiobutton(root, text="m/s", variable=speed_unit_var, value="m/s").grid(row=6, column=1, padx=10, pady=5, sticky="w")
+kmh_radiobutton = tk.Radiobutton(root, text="km/h", variable=speed_unit_var, value="km/h", state=tk.DISABLED)
+kmh_radiobutton.grid(row=6, column=0, padx=10, pady=5, sticky="w")
+ms_radiobutton = tk.Radiobutton(root, text="m/s", variable=speed_unit_var, value="m/s", state=tk.DISABLED)
+ms_radiobutton.grid(row=6, column=1, padx=10, pady=5, sticky="w")
 
 tk.Label(root, text="Start Date:").grid(row=7, column=0, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-start_date_entry.grid(row=7, column=1, padx=10, pady=10, sticky="w")
+start_date_entry.grid(row=7, column=1, padx=10, pady=10)
 start_date_label = tk.Label(root, text="")
 start_date_label.grid(row=7, column=2, padx=10, pady=10, sticky="w")
 start_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(start_date_entry, start_date_label))
@@ -308,7 +372,7 @@ start_time_entry.grid(row=7, column=4, padx=10, pady=10, sticky="w")
 
 tk.Label(root, text="End Date:").grid(row=8, column=0, padx=10, pady=10, sticky="e")
 end_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-end_date_entry.grid(row=8, column=1, padx=10, pady=10, sticky="w")
+end_date_entry.grid(row=8, column=1, padx=10, pady=10)
 end_date_label = tk.Label(root, text="")
 end_date_label.grid(row=8, column=2, padx=10, pady=10, sticky="w")
 end_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(end_date_entry, end_date_label))
