@@ -311,7 +311,7 @@ def validate_speed_selection():
 
 # Create the main window
 root = tk.Tk()
-root.title("IPhone Location Data Map Exporter")
+root.title("IPhone Location Data Map Exporter v.0.1 Beta")
 
 # Show warning message
 root.after(0, show_warning)
