@@ -3,7 +3,7 @@ import pandas as pd
 import simplekml
 from datetime import datetime, timedelta
 import tkinter as tk
-from tkinter import filedialog, messagebox, Toplevel, Label
+from tkinter import filedialog, messagebox, Toplevel, Label, HORIZONTAL
 from tkinter.ttk import Progressbar, Combobox
 from tkcalendar import DateEntry
 import os
@@ -216,7 +216,7 @@ def show_success_message(output_kml, point_count, filters_path):
     success_window.title("Success")
 
     # Load the image
-    image_path = "C:/Users/micro/OneDrive/Pictures/nice.jpg"
+    image_path = os.path.join(os.path.dirname(__file__), 'images', 'nice.jpg')
     image = Image.open(image_path)
     image = image.resize((200, 200), Image.LANCZOS)  # Resize the image to fit in the window
     photo = ImageTk.PhotoImage(image)
@@ -341,7 +341,7 @@ root.title("IPhone Location Data Map Exporter v.0.1 Beta")
 root.after(0, show_warning)
 
 # Load the image
-image_path = "C:/Users/micro/OneDrive/Pictures/Logo_of_Queensland_Police_Service.svg.png"
+image_path = os.path.join(os.path.dirname(__file__), 'images', 'Logo_of_Queensland_Police_Service.svg.png')
 image = Image.open(image_path)
 image = image.resize((100, 100), Image.LANCZOS)  # Resize the image to fit in the window
 photo = ImageTk.PhotoImage(image)
@@ -412,7 +412,7 @@ horizontal_accuracy_combobox.current(0)  # Set default value to "nil"
 
 tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=10, column=0, columnspan=5, padx=10, pady=20)
 
-progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
+progress_bar = Progressbar(root, orient=tk.HORIZONTAL, length=400, mode="determinate")
 progress_bar.grid(row=11, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
