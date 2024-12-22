@@ -22,7 +22,7 @@ def log_message(message):
     log_window.insert(tk.END, message + "\n")
     log_window.see(tk.END)
 
-def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar):
+def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing):
     try:
         # Define the column names
         column_names = [
@@ -119,6 +119,19 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
                 f"Speed: {speed_text}"
             )
             pnt.description = description
+
+            # Set the name with selected data points
+            name_parts = []
+            if show_date:
+                name_parts.append(date_str)
+            if show_time:
+                name_parts.append(time_str)
+            if show_speed:
+                name_parts.append(speed_text)
+            if show_bearing:
+                name_parts.append(str(course))
+            pnt.name = " | ".join(name_parts)
+
             point_count += 1
 
             # Update progress bar
@@ -166,6 +179,12 @@ def run():
     end_time = end_time_entry.get()
     horizontal_accuracy_filter = horizontal_accuracy_combobox.get()
 
+    # Get checkbox values
+    show_date = date_var.get()
+    show_time = time_var.get()
+    show_speed = speed_var.get()
+    show_bearing = bearing_var.get()
+
     # Reset background colors
     excel_path_entry.config(bg="white")
     output_folder_entry.config(bg="white")
@@ -193,7 +212,7 @@ def run():
 
     start_datetime = datetime.combine(start_date, datetime.strptime(start_time, "%H:%M").time())
     end_datetime = datetime.combine(end_date, datetime.strptime(end_time, "%H:%M").time())
-    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar)).start()
+    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing)).start()
 
 def validate_time_format(time_str):
     try:
@@ -221,41 +240,52 @@ tk.Label(root, text="Time Zone AEST +10 UTC").grid(row=2, column=0, columnspan=5
 
 tk.Label(root, text="Filter Options", font=("Helvetica", 12, "bold", "underline")).grid(row=3, column=0, columnspan=5, padx=10, pady=10)
 
-tk.Label(root, text="Start Date:").grid(row=4, column=2, padx=10, pady=10, sticky="e")
+# Add checkboxes for additional data points
+date_var = tk.BooleanVar()
+time_var = tk.BooleanVar()
+speed_var = tk.BooleanVar()
+bearing_var = tk.BooleanVar()
+
+tk.Checkbutton(root, text="Date", variable=date_var).grid(row=4, column=0, padx=10, pady=5, sticky="w")
+tk.Checkbutton(root, text="Time", variable=time_var).grid(row=4, column=1, padx=10, pady=5, sticky="w")
+tk.Checkbutton(root, text="Speed", variable=speed_var).grid(row=4, column=2, padx=10, pady=5, sticky="w")
+tk.Checkbutton(root, text="Bearing", variable=bearing_var).grid(row=4, column=3, padx=10, pady=5, sticky="w")
+
+tk.Label(root, text="Start Date:").grid(row=5, column=2, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-start_date_entry.grid(row=4, column=3, padx=10, pady=10, sticky="w")
+start_date_entry.grid(row=5, column=3, padx=10, pady=10, sticky="w")
 start_date_label = tk.Label(root, text="")
-start_date_label.grid(row=4, column=4, padx=10, pady=10, sticky="w")
+start_date_label.grid(row=5, column=4, padx=10, pady=10, sticky="w")
 start_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(start_date_entry, start_date_label))
 
-tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=4, column=5, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=5, column=5, padx=10, pady=10, sticky="e")
 start_time_entry = tk.Entry(root, width=10)
-start_time_entry.grid(row=4, column=6, padx=10, pady=10, sticky="w")
+start_time_entry.grid(row=5, column=6, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="End Date:").grid(row=5, column=2, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Date:").grid(row=6, column=2, padx=10, pady=10, sticky="e")
 end_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-end_date_entry.grid(row=5, column=3, padx=10, pady=10, sticky="w")
+end_date_entry.grid(row=6, column=3, padx=10, pady=10, sticky="w")
 end_date_label = tk.Label(root, text="")
-end_date_label.grid(row=5, column=4, padx=10, pady=10, sticky="w")
+end_date_label.grid(row=6, column=4, padx=10, pady=10, sticky="w")
 end_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(end_date_entry, end_date_label))
 
-tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=5, column=5, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=6, column=5, padx=10, pady=10, sticky="e")
 end_time_entry = tk.Entry(root, width=10)
-end_time_entry.grid(row=5, column=6, padx=10, pady=10, sticky="w")
+end_time_entry.grid(row=6, column=6, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="Horizontal Accuracy:").grid(row=6, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Horizontal Accuracy:").grid(row=7, column=0, padx=10, pady=10, sticky="e")
 horizontal_accuracy_combobox = Combobox(root, values=["nil", "< 10m", "< 50m", "< 100m", "< 500m"], state="readonly")
-horizontal_accuracy_combobox.grid(row=6, column=1, padx=10, pady=10, sticky="w")
+horizontal_accuracy_combobox.grid(row=7, column=1, padx=10, pady=10, sticky="w")
 horizontal_accuracy_combobox.current(0)  # Set default value to "nil"
 
-tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=7, column=0, columnspan=5, padx=10, pady=20)
+tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=8, column=0, columnspan=5, padx=10, pady=20)
 
 progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar.grid(row=8, column=0, columnspan=5, padx=10, pady=10)
+progress_bar.grid(row=9, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
 log_window = tk.Text(root, height=10, width=80)
-log_window.grid(row=9, column=0, columnspan=5, padx=10, pady=10)
+log_window.grid(row=10, column=0, columnspan=5, padx=10, pady=10)
 
 # Run the application
 root.mainloop()
