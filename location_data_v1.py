@@ -11,6 +11,7 @@ import threading
 from PIL import Image, ImageTk
 
 def update_speed_unit_state():
+    log_message("Updating speed unit state...")
     if speed_var.get():
         kmh_radiobutton.config(state=tk.NORMAL)
         ms_radiobutton.config(state=tk.NORMAL)
@@ -20,12 +21,14 @@ def update_speed_unit_state():
 
 def convert_timestamp(ts):
     try:
+        log_message(f"Converting timestamp: {ts}")
         # iPhone epoch starts from 2001-01-01
         iphone_epoch_start = datetime(2001, 1, 1)
         utc_time = iphone_epoch_start + timedelta(seconds=float(ts))
         brisbane_time = utc_time + timedelta(hours=10)
         return brisbane_time.strftime('%d/%m/%Y'), brisbane_time.strftime('%H:%M:%S'), 'AEST (UTC+10)'
     except ValueError:
+        log_message(f"Failed to convert timestamp: {ts}")
         return ts, ts, 'Unknown'  # Return as-is if conversion fails
 
 def log_message(message):
@@ -34,6 +37,14 @@ def log_message(message):
 
 def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing, speed_unit):
     try:
+        log_message("Starting file processing...")
+        log_message(f"Excel path: {excel_path}")
+        log_message(f"Output folder: {output_folder}")
+        log_message(f"Start datetime: {start_datetime}")
+        log_message(f"End datetime: {end_datetime}")
+        log_message(f"Horizontal accuracy filter: {horizontal_accuracy_filter}")
+        log_message(f"Show date: {show_date}, Show time: {show_time}, Show speed: {show_speed}, Show bearing: {show_bearing}, Speed unit: {speed_unit}")
+
         # Define the column names
         column_names = [
             "Z_PK", "ZALTITUDE", "ZCOURSE", "ZHORIZONTALACCURACY", "ZLATITUDE", "ZLONGITUDE",
@@ -200,6 +211,7 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
         messagebox.showerror("Error", f"An error occurred: {e}")
 
 def show_success_message(output_kml, point_count, filters_path):
+    log_message("Showing success message...")
     success_window = Toplevel(root)
     success_window.title("Success")
 
@@ -219,23 +231,27 @@ def show_success_message(output_kml, point_count, filters_path):
     success_window.image = photo
 
 def browse_file():
+    log_message("Browsing for file...")
     file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
     if file_path:
         excel_path_entry.delete(0, tk.END)
         excel_path_entry.insert(0, file_path)
 
 def browse_folder():
+    log_message("Browsing for folder...")
     folder_path = filedialog.askdirectory()
     if folder_path:
         output_folder_entry.delete(0, tk.END)
         output_folder_entry.insert(0, folder_path)
 
 def update_date_label(entry, label):
+    log_message("Updating date label...")
     date = entry.get_date()
     formatted_date = date.strftime('%A, %d %B %Y')
     label.config(text=formatted_date)
 
 def run():
+    log_message("Running process...")
     if not validate_speed_selection():
         return
 
@@ -262,12 +278,16 @@ def run():
 
     # Check for empty inputs and highlight in red if empty
     if not excel_path:
+        log_message("Excel path is empty")
         excel_path_entry.config(bg="red")
     if not output_folder:
+        log_message("Output folder is empty")
         output_folder_entry.config(bg="red")
     if not start_time:
+        log_message("Start time is empty")
         start_time_entry.config(bg="red")
     if not end_time:
+        log_message("End time is empty")
         end_time_entry.config(bg="red")
 
     if not excel_path or not output_folder or not start_time or not end_time:
@@ -284,13 +304,16 @@ def run():
     threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar, show_date, show_time, show_speed, show_bearing, speed_unit)).start()
 
 def validate_time_format(time_str):
+    log_message(f"Validating time format: {time_str}")
     try:
         datetime.strptime(time_str, "%H:%M")
         return True
     except ValueError:
+        log_message(f"Invalid time format: {time_str}")
         return False
 
 def show_warning():
+    log_message("Showing warning message...")
     warning_message = (
         "WARNING\n"
         "Validate results independently before disclosing products in criminal proceedings\n"
@@ -304,6 +327,7 @@ def show_warning():
         root.destroy()
 
 def validate_speed_selection():
+    log_message("Validating speed selection...")
     if not speed_var.get() and (speed_unit_var.get() == "km/h" or speed_unit_var.get() == "m/s"):
         messagebox.showerror("Input Error", "Please select the Speed checkbox to enable speed unit selection.")
         return False
