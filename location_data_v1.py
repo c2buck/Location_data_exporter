@@ -215,20 +215,10 @@ def show_success_message(output_kml, point_count, filters_path):
     success_window = Toplevel(root)
     success_window.title("Success")
 
-    # Load the image
-    image_path = os.path.join(os.path.dirname(__file__), 'images', 'nice.jpg')
-    image = Image.open(image_path)
-    image = image.resize((200, 200), Image.LANCZOS)  # Resize the image to fit in the window
-    photo = ImageTk.PhotoImage(image)
-
     # Create and place the widgets
-    Label(success_window, image=photo).pack(pady=10)
-    Label(success_window, text=f"KML file created: {output_kml}").pack(pady=5)
+    Label(success_window, text=f"KML file created: {output_kml}").pack(pady=10)
     Label(success_window, text=f"Total data points created: {point_count}").pack(pady=5)
     Label(success_window, text=f"Filters and settings saved to: {filters_path}").pack(pady=5)
-
-    # Keep a reference to the image to prevent garbage collection
-    success_window.image = photo
 
 def browse_file():
     log_message("Browsing for file...")
@@ -340,20 +330,11 @@ root.title("IPhone Location Data Map Exporter v.0.1 Beta")
 # Show warning message
 root.after(0, show_warning)
 
-# Load the image
-image_path = os.path.join(os.path.dirname(__file__), 'images', 'Logo_of_Queensland_Police_Service.svg.png')
-image = Image.open(image_path)
-image = image.resize((100, 100), Image.LANCZOS)  # Resize the image to fit in the window
-photo = ImageTk.PhotoImage(image)
-
 # Create and place the widgets
 tk.Label(root, text="Excel File:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
 excel_path_entry = tk.Entry(root, width=50)
 excel_path_entry.grid(row=0, column=1, padx=10, pady=10)
 tk.Button(root, text="Browse...", command=browse_file).grid(row=0, column=2, padx=10, pady=10)
-
-# Place the image in the top right corner
-tk.Label(root, image=photo).grid(row=0, column=3, padx=10, pady=10, rowspan=2, sticky="ne")
 
 tk.Label(root, text="Output Folder:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
 output_folder_entry = tk.Entry(root, width=50)
