@@ -217,43 +217,45 @@ output_folder_entry = tk.Entry(root, width=50)
 output_folder_entry.grid(row=1, column=1, padx=10, pady=10)
 tk.Button(root, text="Browse...", command=browse_folder).grid(row=1, column=2, padx=10, pady=10)
 
-tk.Label(root, text="Time Zone AEST 10+ UTC").grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+tk.Label(root, text="Filter Options").grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 
-tk.Label(root, text="Start Date:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Time Zone AEST 10+ UTC").grid(row=3, column=0, columnspan=5, padx=10, pady=10)
+
+tk.Label(root, text="Start Date:").grid(row=4, column=0, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-start_date_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+start_date_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
 start_date_label = tk.Label(root, text="")
-start_date_label.grid(row=3, column=2, padx=10, pady=10, sticky="w")
+start_date_label.grid(row=4, column=2, padx=10, pady=10, sticky="w")
 start_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(start_date_entry, start_date_label))
 
-tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=3, column=3, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=4, column=3, padx=10, pady=10, sticky="e")
 start_time_entry = tk.Entry(root, width=10)
-start_time_entry.grid(row=3, column=4, padx=10, pady=10, sticky="w")
+start_time_entry.grid(row=4, column=4, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="End Date:").grid(row=4, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Date:").grid(row=5, column=0, padx=10, pady=10, sticky="e")
 end_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-end_date_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
+end_date_entry.grid(row=5, column=1, padx=10, pady=10, sticky="w")
 end_date_label = tk.Label(root, text="")
-end_date_label.grid(row=4, column=2, padx=10, pady=10, sticky="w")
+end_date_label.grid(row=5, column=2, padx=10, pady=10, sticky="w")
 end_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(end_date_entry, end_date_label))
 
-tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=4, column=3, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=5, column=3, padx=10, pady=10, sticky="e")
 end_time_entry = tk.Entry(root, width=10)
-end_time_entry.grid(row=4, column=4, padx=10, pady=10, sticky="w")
+end_time_entry.grid(row=5, column=4, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="Horizontal Accuracy:").grid(row=5, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Horizontal Accuracy:").grid(row=6, column=0, padx=10, pady=10, sticky="e")
 horizontal_accuracy_combobox = Combobox(root, values=["nil", "< 10m", "< 50m", "< 100m", "< 500m"], state="readonly")
-horizontal_accuracy_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+horizontal_accuracy_combobox.grid(row=6, column=1, padx=10, pady=10, sticky="w")
 horizontal_accuracy_combobox.current(0)  # Set default value to "nil"
 
-tk.Button(root, text="Run", command=run).grid(row=6, column=1, padx=10, pady=10)
+tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=7, column=0, columnspan=5, padx=10, pady=20)
 
 progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar.grid(row=7, column=0, columnspan=5, padx=10, pady=10)
+progress_bar.grid(row=8, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
 log_window = tk.Text(root, height=10, width=80)
-log_window.grid(row=8, column=0, columnspan=5, padx=10, pady=10)
+log_window.grid(row=9, column=0, columnspan=5, padx=10, pady=10)
 
 # Run the application
 root.mainloop()
