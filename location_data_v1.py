@@ -3,7 +3,7 @@ import simplekml
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from tkinter.ttk import Progressbar
+from tkinter.ttk import Progressbar, Combobox
 from tkcalendar import DateEntry
 import os
 import threading
@@ -22,7 +22,7 @@ def log_message(message):
     log_window.insert(tk.END, message + "\n")
     log_window.see(tk.END)
 
-def process_file(excel_path, output_folder, start_datetime, end_datetime, progress_bar):
+def process_file(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar):
     try:
         # Define the column names
         column_names = [
@@ -48,6 +48,16 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, progre
         df["ZTIMESTAMP"] = df["ZTIMESTAMP"].astype(float)
         df["datetime"] = df["ZTIMESTAMP"].apply(lambda ts: datetime(2001, 1, 1) + timedelta(seconds=ts) + timedelta(hours=10))
         df = df[(df["datetime"] >= start_datetime) & (df["datetime"] <= end_datetime)]
+
+        # Apply horizontal accuracy filter
+        if horizontal_accuracy_filter == "< 10m":
+            df = df[df["ZHORIZONTALACCURACY"] < 10]
+        elif horizontal_accuracy_filter == "< 50m":
+            df = df[df["ZHORIZONTALACCURACY"] < 50]
+        elif horizontal_accuracy_filter == "< 100m":
+            df = df[df["ZHORIZONTALACCURACY"] < 100]
+        elif horizontal_accuracy_filter == "< 500m":
+            df = df[df["ZHORIZONTALACCURACY"] < 500]
 
         # Create a KML object
         log_message("Creating KML object...")
@@ -154,6 +164,7 @@ def run():
     start_time = start_time_entry.get()
     end_date = end_date_entry.get_date()
     end_time = end_time_entry.get()
+    horizontal_accuracy_filter = horizontal_accuracy_combobox.get()
 
     # Reset background colors
     excel_path_entry.config(bg="white")
@@ -175,9 +186,21 @@ def run():
         messagebox.showwarning("Input Error", "Please fill in all required fields.")
         return
 
+    # Validate time format
+    if not validate_time_format(start_time) or not validate_time_format(end_time):
+        messagebox.showerror("Input Error", "Time must be in HH:MM format.")
+        return
+
     start_datetime = datetime.combine(start_date, datetime.strptime(start_time, "%H:%M").time())
     end_datetime = datetime.combine(end_date, datetime.strptime(end_time, "%H:%M").time())
-    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, progress_bar)).start()
+    threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, horizontal_accuracy_filter, progress_bar)).start()
+
+def validate_time_format(time_str):
+    try:
+        datetime.strptime(time_str, "%H:%M")
+        return True
+    except ValueError:
+        return False
 
 # Create the main window
 root = tk.Tk()
@@ -218,14 +241,19 @@ tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=4, column=3, padx=10, pad
 end_time_entry = tk.Entry(root, width=10)
 end_time_entry.grid(row=4, column=4, padx=10, pady=10, sticky="w")
 
-tk.Button(root, text="Run", command=run).grid(row=5, column=1, padx=10, pady=10)
+tk.Label(root, text="Horizontal Accuracy:").grid(row=5, column=0, padx=10, pady=10, sticky="e")
+horizontal_accuracy_combobox = Combobox(root, values=["nil", "< 10m", "< 50m", "< 100m", "< 500m"], state="readonly")
+horizontal_accuracy_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+horizontal_accuracy_combobox.current(0)  # Set default value to "nil"
+
+tk.Button(root, text="Run", command=run).grid(row=6, column=1, padx=10, pady=10)
 
 progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar.grid(row=6, column=0, columnspan=5, padx=10, pady=10)
+progress_bar.grid(row=7, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
 log_window = tk.Text(root, height=10, width=80)
-log_window.grid(row=7, column=0, columnspan=5, padx=10, pady=10)
+log_window.grid(row=8, column=0, columnspan=5, padx=10, pady=10)
 
 # Run the application
 root.mainloop()
