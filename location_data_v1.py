@@ -1,3 +1,4 @@
+# Ensure you have Pillow installed: pip install pillow
 import pandas as pd
 import simplekml
 from datetime import datetime, timedelta
@@ -7,6 +8,7 @@ from tkinter.ttk import Progressbar, Combobox
 from tkcalendar import DateEntry
 import os
 import threading
+from PIL import Image, ImageTk
 
 def convert_timestamp(ts):
     try:
@@ -150,7 +152,22 @@ def process_file(excel_path, output_folder, start_datetime, end_datetime, horizo
         kml.save(output_kml)
         log_message(f"KML file created: {output_kml}")
         log_message(f"Total data points created: {point_count}")
-        messagebox.showinfo("Success", f"KML file created: {output_kml}\nTotal data points created: {point_count}")
+
+        # Write filters and settings to a text file
+        filters_filename = f"Filters - {os.path.splitext(input_filename)[0]}.txt"
+        filters_path = os.path.join(output_folder, filters_filename)
+        with open(filters_path, 'w') as f:
+            f.write(f"Start Date: {start_datetime.strftime('%d/%m/%Y %H:%M')}\n")
+            f.write(f"End Date: {end_datetime.strftime('%d/%m/%Y %H:%M')}\n")
+            f.write(f"Horizontal Accuracy Filter: {horizontal_accuracy_filter}\n")
+            f.write(f"Show Date: {show_date}\n")
+            f.write(f"Show Time: {show_time}\n")
+            f.write(f"Show Speed: {show_speed}\n")
+            f.write(f"Show Bearing: {show_bearing}\n")
+            f.write(f"Speed Unit: {speed_unit}\n")
+        log_message(f"Filters and settings saved to: {filters_path}")
+
+        messagebox.showinfo("Success", f"KML file created: {output_kml}\nTotal data points created: {point_count}\nFilters and settings saved to: {filters_path}")
 
     except Exception as e:
         log_message(f"An error occurred: {e}")
@@ -229,11 +246,20 @@ def validate_time_format(time_str):
 root = tk.Tk()
 root.title("IPhone Location Data Map Exporter")
 
+# Load the image
+image_path = "C:/Users/micro/OneDrive/Pictures/Logo_of_Queensland_Police_Service.svg.png"
+image = Image.open(image_path)
+image = image.resize((100, 100), Image.LANCZOS)  # Resize the image to fit in the window
+photo = ImageTk.PhotoImage(image)
+
 # Create and place the widgets
 tk.Label(root, text="Excel File:").grid(row=0, column=0, padx=10, pady=10, sticky="e")
 excel_path_entry = tk.Entry(root, width=50)
 excel_path_entry.grid(row=0, column=1, padx=10, pady=10)
 tk.Button(root, text="Browse...", command=browse_file).grid(row=0, column=2, padx=10, pady=10)
+
+# Place the image in the top right corner
+tk.Label(root, image=photo).grid(row=0, column=3, padx=10, pady=10, rowspan=2, sticky="ne")
 
 tk.Label(root, text="Output Folder:").grid(row=1, column=0, padx=10, pady=10, sticky="e")
 output_folder_entry = tk.Entry(root, width=50)
@@ -252,49 +278,50 @@ bearing_var = tk.BooleanVar()
 
 tk.Checkbutton(root, text="Date", variable=date_var).grid(row=4, column=0, padx=10, pady=5, sticky="w")
 tk.Checkbutton(root, text="Time", variable=time_var).grid(row=4, column=1, padx=10, pady=5, sticky="w")
-tk.Checkbutton(root, text="Speed", variable=speed_var).grid(row=4, column=2, padx=10, pady=5, sticky="w")
-tk.Checkbutton(root, text="Bearing", variable=bearing_var).grid(row=4, column=3, padx=10, pady=5, sticky="w")
+
+tk.Checkbutton(root, text="Speed", variable=speed_var).grid(row=5, column=0, padx=10, pady=5, sticky="w")
+tk.Checkbutton(root, text="Bearing", variable=bearing_var).grid(row=5, column=1, padx=10, pady=5, sticky="w")
 
 # Add radio buttons for speed unit selection
 speed_unit_var = tk.StringVar(value="km/h")
-tk.Radiobutton(root, text="km/h", variable=speed_unit_var, value="km/h").grid(row=4, column=4, padx=10, pady=5, sticky="w")
-tk.Radiobutton(root, text="m/s", variable=speed_unit_var, value="m/s").grid(row=4, column=5, padx=10, pady=5, sticky="w")
+tk.Radiobutton(root, text="km/h", variable=speed_unit_var, value="km/h").grid(row=6, column=0, padx=10, pady=5, sticky="w")
+tk.Radiobutton(root, text="m/s", variable=speed_unit_var, value="m/s").grid(row=6, column=1, padx=10, pady=5, sticky="w")
 
-tk.Label(root, text="Start Date:").grid(row=5, column=2, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Start Date:").grid(row=7, column=0, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-start_date_entry.grid(row=5, column=3, padx=10, pady=10, sticky="w")
+start_date_entry.grid(row=7, column=1, padx=10, pady=10, sticky="w")
 start_date_label = tk.Label(root, text="")
-start_date_label.grid(row=5, column=4, padx=10, pady=10, sticky="w")
+start_date_label.grid(row=7, column=2, padx=10, pady=10, sticky="w")
 start_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(start_date_entry, start_date_label))
 
-tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=5, column=5, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=7, column=3, padx=10, pady=10, sticky="e")
 start_time_entry = tk.Entry(root, width=10)
-start_time_entry.grid(row=5, column=6, padx=10, pady=10, sticky="w")
+start_time_entry.grid(row=7, column=4, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="End Date:").grid(row=6, column=2, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Date:").grid(row=8, column=0, padx=10, pady=10, sticky="e")
 end_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-end_date_entry.grid(row=6, column=3, padx=10, pady=10, sticky="w")
+end_date_entry.grid(row=8, column=1, padx=10, pady=10, sticky="w")
 end_date_label = tk.Label(root, text="")
-end_date_label.grid(row=6, column=4, padx=10, pady=10, sticky="w")
+end_date_label.grid(row=8, column=2, padx=10, pady=10, sticky="w")
 end_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(end_date_entry, end_date_label))
 
-tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=6, column=5, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=8, column=3, padx=10, pady=10, sticky="e")
 end_time_entry = tk.Entry(root, width=10)
-end_time_entry.grid(row=6, column=6, padx=10, pady=10, sticky="w")
+end_time_entry.grid(row=8, column=4, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="Horizontal Accuracy:").grid(row=7, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Horizontal Accuracy:").grid(row=9, column=0, padx=10, pady=10, sticky="e")
 horizontal_accuracy_combobox = Combobox(root, values=["nil", "< 10m", "< 50m", "< 100m", "< 500m"], state="readonly")
-horizontal_accuracy_combobox.grid(row=7, column=1, padx=10, pady=10, sticky="w")
+horizontal_accuracy_combobox.grid(row=9, column=1, padx=10, pady=10, sticky="w")
 horizontal_accuracy_combobox.current(0)  # Set default value to "nil"
 
-tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=8, column=0, columnspan=5, padx=10, pady=20)
+tk.Button(root, text="Run", command=run, width=20, height=2).grid(row=10, column=0, columnspan=5, padx=10, pady=20)
 
 progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar.grid(row=9, column=0, columnspan=5, padx=10, pady=10)
+progress_bar.grid(row=11, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
 log_window = tk.Text(root, height=10, width=80)
-log_window.grid(row=10, column=0, columnspan=5, padx=10, pady=10)
+log_window.grid(row=12, column=0, columnspan=5, padx=10, pady=10)
 
 # Run the application
 root.mainloop()
