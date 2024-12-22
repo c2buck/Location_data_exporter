@@ -154,11 +154,29 @@ def run():
     start_time = start_time_entry.get()
     end_date = end_date_entry.get_date()
     end_time = end_time_entry.get()
+
+    # Reset background colors
+    excel_path_entry.config(bg="white")
+    output_folder_entry.config(bg="white")
+    start_time_entry.config(bg="white")
+    end_time_entry.config(bg="white")
+
+    # Check for empty inputs and highlight in red if empty
+    if not excel_path:
+        excel_path_entry.config(bg="red")
+    if not output_folder:
+        output_folder_entry.config(bg="red")
+    if not start_time:
+        start_time_entry.config(bg="red")
+    if not end_time:
+        end_time_entry.config(bg="red")
+
+    if not excel_path or not output_folder or not start_time or not end_time:
+        messagebox.showwarning("Input Error", "Please fill in all required fields.")
+        return
+
     start_datetime = datetime.combine(start_date, datetime.strptime(start_time, "%H:%M").time())
     end_datetime = datetime.combine(end_date, datetime.strptime(end_time, "%H:%M").time())
-    if not excel_path or not output_folder:
-        messagebox.showwarning("Input Error", "Please select both the Excel file and the output folder.")
-        return
     threading.Thread(target=process_file, args=(excel_path, output_folder, start_datetime, end_datetime, progress_bar)).start()
 
 # Create the main window
@@ -176,36 +194,38 @@ output_folder_entry = tk.Entry(root, width=50)
 output_folder_entry.grid(row=1, column=1, padx=10, pady=10)
 tk.Button(root, text="Browse...", command=browse_folder).grid(row=1, column=2, padx=10, pady=10)
 
-tk.Label(root, text="Start Date:").grid(row=2, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Time Zone AEST 10+ UTC").grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+
+tk.Label(root, text="Start Date:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
 start_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-start_date_entry.grid(row=2, column=1, padx=10, pady=10, sticky="w")
+start_date_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
 start_date_label = tk.Label(root, text="")
-start_date_label.grid(row=2, column=2, padx=10, pady=10, sticky="w")
+start_date_label.grid(row=3, column=2, padx=10, pady=10, sticky="w")
 start_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(start_date_entry, start_date_label))
 
-tk.Label(root, text="Start Time (HH:MM):").grid(row=2, column=3, padx=10, pady=10, sticky="e")
+tk.Label(root, text="Start Time (HH:MM) 24hr:").grid(row=3, column=3, padx=10, pady=10, sticky="e")
 start_time_entry = tk.Entry(root, width=10)
-start_time_entry.grid(row=2, column=4, padx=10, pady=10, sticky="w")
+start_time_entry.grid(row=3, column=4, padx=10, pady=10, sticky="w")
 
-tk.Label(root, text="End Date:").grid(row=3, column=0, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Date:").grid(row=4, column=0, padx=10, pady=10, sticky="e")
 end_date_entry = DateEntry(root, width=12, background='darkblue', foreground='white', borderwidth=2, date_pattern='dd/mm/yyyy')
-end_date_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
+end_date_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
 end_date_label = tk.Label(root, text="")
-end_date_label.grid(row=3, column=2, padx=10, pady=10, sticky="w")
+end_date_label.grid(row=4, column=2, padx=10, pady=10, sticky="w")
 end_date_entry.bind("<<DateEntrySelected>>", lambda event: update_date_label(end_date_entry, end_date_label))
 
-tk.Label(root, text="End Time (HH:MM):").grid(row=3, column=3, padx=10, pady=10, sticky="e")
+tk.Label(root, text="End Time (HH:MM) 24hr:").grid(row=4, column=3, padx=10, pady=10, sticky="e")
 end_time_entry = tk.Entry(root, width=10)
-end_time_entry.grid(row=3, column=4, padx=10, pady=10, sticky="w")
+end_time_entry.grid(row=4, column=4, padx=10, pady=10, sticky="w")
 
-tk.Button(root, text="Run", command=run).grid(row=4, column=1, padx=10, pady=10)
+tk.Button(root, text="Run", command=run).grid(row=5, column=1, padx=10, pady=10)
 
 progress_bar = Progressbar(root, orient="horizontal", length=400, mode="determinate")
-progress_bar.grid(row=5, column=0, columnspan=5, padx=10, pady=10)
+progress_bar.grid(row=6, column=0, columnspan=5, padx=10, pady=10)
 
 # Create the log window
 log_window = tk.Text(root, height=10, width=80)
-log_window.grid(row=6, column=0, columnspan=5, padx=10, pady=10)
+log_window.grid(row=7, column=0, columnspan=5, padx=10, pady=10)
 
 # Run the application
 root.mainloop()
